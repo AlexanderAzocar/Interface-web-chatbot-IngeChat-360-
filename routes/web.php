@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ChatbotController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('/preguntar', [ChatbotController::class, 'preguntar']);
 Route::get('/', function () {
-    return view('welcome');
+    return view('chatbot');
+});
+Route::fallback(function () {
+    return view('chatbot');
 });
