@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         /* Definición de Variables CSS para Colores Institucionales y Generales */
@@ -22,16 +22,20 @@
             --shadow-medium: rgba(0, 0, 0, 0.15); /* Sombra un poco más marcada */
         }
 
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
         body {
             background: var(--unefa-light-bg) url('/unefa.jpg') no-repeat center center fixed;
             background-size: cover;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Open Sans', sans-serif; /* Fuente principal legible */
+            font-family: 'Open Sans', sans-serif;
             color: var(--message-text-dark);
             display: flex;
             justify-content: center;
-            align-items: center; /* Centra el contenedor del chat en la pantalla */
+            align-items: center;
+            overflow: hidden;
         }
 
         .chat-container {
@@ -40,7 +44,7 @@
             margin: auto;
             background: var(--message-bg-bot);
             border-radius: 18px;
-            box-shadow: 0 10px 40px var(--shadow-medium);
+            box-shadow: 0 15px 50px var(--shadow-medium);
             display: flex;
             flex-direction: column;
             min-height: 800px;
@@ -48,37 +52,48 @@
             height: 800px;
             overflow: hidden;
             border: 1px solid var(--border-light);
+
+            @media (min-width: 769px) {
+                max-width: 900px;
+                width: 90%;
+                margin: 0 auto;
+                height: 95vh;
+                border-radius: 18px;
+            }
         }
 
         .chat-header {
             display: flex;
             align-items: center;
             gap: 16px;
-            padding: 24px 32px; /* Espaciado generoso */
-            background: var(--unefa-blue); /* Color institucional fuerte para el encabezado */
+            padding: 24px 32px;
+            background: var(--unefa-blue);
             color: #fff;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: sticky; /* Permite que el encabezado se mantenga visible al hacer scroll */
+            position: sticky;
             top: 0;
-            z-index: 10; /* Asegura que esté por encima de otros elementos */
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            justify-content: center;
         }
 
         .chat-header img {
-            width: 64px; /* Aumenta el tamaño del logo para mayor prominencia */
-            height: 64px;
+            width: 68px;
+            height: 68px;
             border-radius: 50%;
-            background: #fff; /* Fondo blanco para el logo */
-            padding: 5px; /* Pequeño padding alrededor del logo */
+            background: #fff;
+            padding: 4px;
             box-shadow: 0 2px 10px var(--shadow-subtle);
+            object-fit: contain;
         }
 
         .chat-header h2 {
             margin: 0;
-            font-size: 1.9rem; /* Tamaño de fuente más grande para el título */
+            font-size: 2rem;
             font-weight: 700;
             color: #fff;
-            font-family: 'Montserrat', sans-serif; /* Fuente más robusta para el título */
-            letter-spacing: 0.8px; /* Espaciado sutil entre letras */
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.8px;
         }
 
         .messages {
@@ -86,170 +101,227 @@
             display: flex;
             flex-direction: column;
             padding: 32px 48px;
-            background: var(--unefa-light-bg); /* Un fondo más claro para el área de mensajes */
-            overflow-y: auto; /* Habilita el scroll vertical cuando los mensajes exceden el alto */
-            scroll-behavior: smooth; /* Desplazamiento suave al agregar nuevos mensajes */
+            background: var(--unefa-light-bg);
+            overflow-y: auto;
+            scroll-behavior: smooth;
             min-height: 0;
-            max-height: 650px; /* Limita el área de mensajes */
+
+            @media (min-width: 769px) {
+                padding: 32px 60px;
+            }
         }
 
-        .message {
-            margin-bottom: 16px; /* Espaciado entre burbujas de mensaje */
-            max-width: 85%; /* Ancho máximo para los mensajes */
-            padding: 14px 20px; /* Padding interno de las burbujas */
-            border-radius: 20px; /* Bordes muy redondeados */
-            font-size: 1.05rem;
-            line-height: 1.5;
-            word-break: break-word; /* Rompe palabras largas para evitar desbordamiento */
-            box-shadow: 0 4px 12px var(--shadow-subtle); /* Sombra para dar profundidad */
-            animation: fadeIn 0.3s ease-out; /* Animación de aparición suave */
+        .message-wrapper {
             display: flex;
             align-items: flex-end;
+            margin-bottom: 16px;
+            max-width: 85%;
             gap: 10px;
         }
 
-        .message.user {
-            background: var(--unefa-blue); /* Mensajes del usuario con el color institucional */
-            color: #fff;
-            align-self: flex-end; /* Alinea los mensajes del usuario a la derecha */
-            border-bottom-right-radius: 8px; /* Esquina más "afilada" para un diseño moderno */
-            flex-direction: row-reverse;
+        .message {
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            word-break: break-word;
+            box-shadow: 0 4px 12px var(--shadow-subtle);
+            animation: fadeIn 0.3s ease-out;
+            position: relative;
         }
 
-        .message.bot {
+        /* --- CAMBIOS AQUÍ para posicionar el avatar del usuario a la DERECHA --- */
+        .message-wrapper.user {
+            align-self: flex-end; /* Alinea todo el wrapper a la derecha */
+            flex-direction: row-reverse; /* Esto pone el avatar a la derecha */
+        }
+
+        .message-wrapper.user .message {
+            background: var(--unefa-blue);
+            color: #fff;
+            border-radius: 20px 20px 4px 20px; /* Esquina inferior derecha menos redondeada (botón) */
+        }
+
+        .message-wrapper.bot {
+            align-self: flex-start; /* Alinea todo el wrapper a la izquierda */
+            flex-direction: row; /* Asegura que el avatar del bot esté a la izquierda */
+        }
+
+        .message-wrapper.bot .message {
             background: var(--message-bg-bot);
             color: var(--message-text-dark);
-            align-self: flex-start; /* Alinea los mensajes del bot a la izquierda */
-            border-bottom-left-radius: 8px; /* Esquina más "afilada" para un diseño moderno */
-            border: 1px solid var(--border-light); /* Borde sutil para los mensajes del bot */
+            border: 1px solid var(--border-light);
+            border-radius: 20px 20px 20px 4px; /* Esquina inferior izquierda menos redondeada (bot) */
         }
 
-        /* Indicador de "escribiendo" */
-        .message.bot.typing-indicator {
-            background: #e0e7ff; /* Fondo ligeramente diferente para el indicador */
+        .message-wrapper .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+            border: 1px solid var(--border-light);
+            align-self: flex-end;
+        }
+
+        .message-wrapper.bot .message.typing-indicator {
+            background: #e9eff5;
             color: var(--message-text-dark);
             font-size: 1rem;
             display: flex;
             align-items: center;
             gap: 4px;
             animation: pulseFade 1.5s infinite ease-in-out;
+            padding: 12px 18px;
+            border-radius: 20px 20px 20px 4px;
         }
 
         .typing-indicator span {
             animation: bounce 0.6s infinite alternate;
             opacity: 0.6;
+            font-weight: 700;
+            color: var(--unefa-blue);
         }
         .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 
+
         .input-area {
             flex-shrink: 0;
             padding: 20px 32px;
-            background: rgba(255,255,255,0.2); /* Fondo transparente */
+            background: rgba(255,255,255,0.2);
             border-top: 1px solid var(--border-light);
-            backdrop-filter: blur(6px); /* Efecto de desenfoque para mayor legibilidad */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+
+            @media (min-width: 769px) {
+                padding: 20px 60px;
+            }
         }
 
         .input-group {
             display: flex;
-            gap: 12px; /* Espacio entre el input y el botón */
             align-items: center;
+            border-radius: 26px;
+            overflow: hidden;
+            border: 1.5px solid var(--border-light);
+            background: var(--unefa-light-bg);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
         }
 
         #user-input {
-            flex: 1; /* Ocupa el espacio disponible */
-            border-radius: 24px; /* Muy redondeado */
-            border: 1.5px solid var(--border-light);
-            font-size: 1.05rem;
-            padding: 12px 20px;
-            background: var(--unefa-light-bg);
-            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03); /* Sombra interna sutil */
+            flex: 1;
+            border: none;
+            border-radius: 0;
+            padding: 13px 20px;
+            background: transparent;
+            box-shadow: none;
+            transition: none;
+            color: var(--message-text-dark);
         }
 
-        .input-group .form-control {
-            background: rgba(255,255,255,0.5);
-            border: 1.5px solid var(--border-light);
-            color: var(--message-text-dark);
+        #user-input:focus {
+            border-color: transparent;
             box-shadow: none;
-        }
-        .input-group .form-control:focus {
-            background: rgba(255,255,255,0.7);
-            border-color: var(--unefa-blue);
+            background: transparent;
             outline: none;
         }
 
         .btn-primary {
-            border-radius: 24px;
+            flex-shrink: 0;
+            border-radius: 0 26px 26px 0;
             background: var(--unefa-blue);
             border: none;
             font-weight: 600;
             font-size: 1.05rem;
-            padding: 12px 28px;
-            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2); /* Sombra para el botón */
+            padding: 13px 25px;
+            box-shadow: none;
             transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
             color: #fff;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .btn-primary:hover {
-            background: var(--unefa-gold); /* Cambio de color al pasar el mouse */
-            transform: translateY(-2px); /* Pequeño efecto de "levantamiento" */
-            box-shadow: 0 6px 16px rgba(0, 51, 102, 0.3);
+            background: var(--unefa-gold);
+            transform: translateY(0);
+            box-shadow: none;
         }
         .btn-primary:active {
-            transform: translateY(0); /* Vuelve a su posición original al hacer click */
-            box-shadow: 0 2px 8px rgba(0, 51, 102, 0.2);
+            background: var(--unefa-blue);
+            transform: translateY(0);
+            box-shadow: none;
         }
 
-        /* Keyframe Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
+            50% { transform: translateY(-4px); }
         }
         @keyframes pulseFade {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.6; }
         }
 
-        /* Responsividad */
         @media (max-width: 768px) {
             .chat-container {
                 max-width: 100vw;
                 width: 100%;
                 margin: 0;
-                border-radius: 0; /* Sin bordes redondeados en vista móvil para ocupar toda la pantalla */
-                min-height: 100vh; /* Ocupa toda la altura disponible */
+                border-radius: 0;
+                min-height: 100vh;
+                height: 100vh;
             }
             .chat-header, .messages, .input-area {
                 padding-left: 20px;
                 padding-right: 20px;
             }
             .chat-header h2 {
-                font-size: 1.7rem;
+                font-size: 1.6rem;
+            }
+            .chat-header img {
+                width: 50px;
+                height: 50px;
+            }
+            .messages {
+                padding: 20px;
+                max-height: calc(100vh - 180px);
+            }
+            .message-wrapper {
+                max-width: 90%;
+                gap: 8px;
             }
             .message {
-                font-size: 0.95rem;
+                font-size: 0.92rem;
                 padding: 10px 15px;
+                border-radius: 12px;
+            }
+            .message-wrapper.user .message {
+                border-radius: 12px 12px 4px 12px;
+            }
+            .message-wrapper.bot .message {
+                border-radius: 12px 12px 12px 4px;
+            }
+            .message-wrapper .avatar {
+                width: 30px;
+                height: 30px;
             }
             #user-input, .btn-primary {
                 font-size: 0.95rem;
                 padding: 10px 18px;
             }
+            .input-group {
+                border-radius: 0;
+                flex-direction: row;
+                flex-wrap: nowrap;
+            }
+            .btn-primary {
+                border-radius: 0;
+            }
         }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
-        .message span { display: inline-block; }
     </style>
 </head>
 <body>
@@ -259,7 +331,12 @@
         <h2>IngeChat 360 UNEFA</h2>
     </div>
     <div class="messages" id="messages">
-        <div class="message bot">¡Hola! Soy Ingechat 360, tu asistente virtual de la UNEFA. Estoy aquí para ayudarte con tus consultas académicas y administrativas. ¿En qué puedo asistirte hoy?</div>
+        <div class="message-wrapper bot">
+            <img src="/bot_avatar.png" alt="Bot" class="avatar">
+            <div class="message">
+                <span>¡Hola! Soy Ingechat 360, tu asistente virtual de la UNEFA. Estoy aquí para ayudarte con tus consultas académicas y administrativas. ¿En qué puedo asistirte hoy?</span>
+            </div>
+        </div>
     </div>
     <form id="chat-form" class="input-area">
         <div class="input-group">
@@ -275,60 +352,64 @@
 
     /**
      * Agrega un nuevo mensaje al área de chat.
-     * @param {string} text - El contenido del mensaje.
+     * @param {string} content - El contenido del mensaje (texto).
      * @param {string} sender - El remitente del mensaje ('user' o 'bot').
      * @param {boolean} isTyping - Si es un mensaje de "escribiendo".
      */
-    function appendMessage(text, sender, isTyping = false) {
-        const msg = document.createElement('div');
-        msg.className = `message ${sender}` + (isTyping ? ' typing-indicator' : '');
-        // Agrega imagen de usuario o bot
+    function appendMessage(content, sender, isTyping = false) {
+        const messageWrapper = document.createElement('div');
+        messageWrapper.className = `message-wrapper ${sender}`;
+
         const avatar = document.createElement('img');
         avatar.className = 'avatar';
         if (sender === 'user') {
             avatar.src = '/user_avatar.jpg';
             avatar.alt = 'Usuario';
         } else {
-            avatar.src = isTyping ? '/send_icon.png' : '/bot_avatar.png';
-            avatar.alt = isTyping ? 'Enviando...' : 'Bot';
+            avatar.src = '/bot_avatar.png';
+            avatar.alt = 'Bot';
         }
-        msg.appendChild(avatar);
-        // Mensaje o puntos animados
+
+        const msgContentDiv = document.createElement('div');
+        msgContentDiv.className = 'message';
+
         if (isTyping) {
+            msgContentDiv.classList.add('typing-indicator');
             const typingSpan = document.createElement('span');
             typingSpan.innerHTML = '<span>.</span><span>.</span><span>.</span>';
-            msg.appendChild(typingSpan);
+            msgContentDiv.appendChild(typingSpan);
         } else {
             const textNode = document.createElement('span');
-            textNode.textContent = text;
-            msg.appendChild(textNode);
+            textNode.textContent = content;
+            msgContentDiv.appendChild(textNode);
         }
-        messagesDiv.appendChild(msg);
+
+        // --- CAMBIOS EN LA LÓGICA DE APPENDMESSAGE ---
+        if (sender === 'user') {
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(msgContentDiv);
+        } else {
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(msgContentDiv);
+        }
+        // --- FIN CAMBIOS ---
+
+        messagesDiv.appendChild(messageWrapper);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
     chatForm.addEventListener('submit', async function(e) {
-        e.preventDefault(); // Previene el comportamiento por defecto del formulario
+        e.preventDefault();
 
         const text = userInput.value.trim();
-        if (!text) return; // No hace nada si el input está vacío
+        if (!text) return;
 
-        appendMessage(text, 'user'); // Muestra el mensaje del usuario
-        userInput.value = ''; // Limpia el campo de entrada
+        appendMessage(text, 'user');
+        userInput.value = '';
+        userInput.disabled = true;
 
-        // Indicador de escribiendo con imagen
-        const typingMsg = document.createElement('div');
-        typingMsg.className = 'message bot typing-indicator';
-        const botAvatar = document.createElement('img');
-        botAvatar.className = 'avatar';
-        botAvatar.src = '/send_icon.png';
-        botAvatar.alt = 'Enviando...';
-        typingMsg.appendChild(botAvatar);
-        const typingSpan = document.createElement('span');
-        typingSpan.innerHTML = '<span>.</span><span>.</span><span>.</span>';
-        typingMsg.appendChild(typingSpan);
-        messagesDiv.appendChild(typingMsg);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Desplaza para ver el indicador
+        appendMessage('', 'bot', true);
+        const typingMsgElement = messagesDiv.lastChild.querySelector('.typing-indicator');
 
         try {
             const response = await fetch('/preguntar', {
@@ -340,53 +421,29 @@
                 body: JSON.stringify({ message: text })
             });
 
-            // Lanza un error si la respuesta no es OK
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
 
-            // Elimina el indicador de "escribiendo" antes de mostrar la respuesta real
-            if (messagesDiv.contains(typingMsg)) {
-                messagesDiv.removeChild(typingMsg);
+            if (typingMsgElement && messagesDiv.contains(typingMsgElement.parentNode)) {
+                messagesDiv.removeChild(typingMsgElement.parentNode);
             }
 
-            // Muestra la respuesta del bot o un mensaje de fallback
             appendMessage(data.response || 'Disculpa, no pude obtener una respuesta en este momento. Por favor, intenta reformular tu pregunta o comunícate con la administración.', 'bot');
+
         } catch (err) {
             console.error('Error al conectar con el bot o procesar la respuesta:', err);
-            // Elimina el indicador de "escribiendo" en caso de error
-            if (messagesDiv.contains(typingMsg)) {
-                messagesDiv.removeChild(typingMsg);
+            if (typingMsgElement && messagesDiv.contains(typingMsgElement.parentNode)) {
+                messagesDiv.removeChild(typingMsgElement.parentNode);
             }
             appendMessage('Lo sentimos, ha ocurrido un error al intentar conectar con el asistente. Por favor, revisa tu conexión a internet o inténtalo de nuevo más tarde.', 'bot');
         } finally {
-            // Asegúrate de que el input esté habilitado de nuevo si se deshabilitó durante el envío
             userInput.disabled = false;
+            userInput.focus();
         }
     });
-
-    // Opcional: Deshabilitar el input mientras se espera la respuesta para evitar envíos dobles
-    chatForm.addEventListener('submit', () => {
-        userInput.disabled = true;
-    });
-
-    // Estilos para los avatares
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .message { display: flex; align-items: flex-end; gap: 10px; }
-        .message.user { flex-direction: row-reverse; }
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
-        .message span { display: inline-block; }
-    `;
-    document.head.appendChild(style);
 </script>
 </body>
 </html>
